@@ -38,6 +38,7 @@ void signal_handler(int)
 {
     exit_application = true;
     exit_guard.notify_all();
+    read_guard.notify_all();
 }
 
 // Assign all the exit signals to signal handler
@@ -77,7 +78,7 @@ ShapePublisher *create_writer(Participant *participant, TopicDataType *topic,
     Wparam.topic.resourceLimitsQos.allocated_samples = 20;
     Wparam.topic.resourceLimitsQos.max_samples_per_instance = 30;
     Wparam.times.heartbeatPeriod.seconds = 2;
-    Wparam.times.heartbeatPeriod.fraction = 200*1000*1000;
+    Wparam.times.heartbeatPeriod.fraction(200*1000*1000);
     Wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
     if (partition != nullptr)
     {
@@ -87,7 +88,7 @@ ShapePublisher *create_writer(Participant *participant, TopicDataType *topic,
     if (livelinessPeriod > 0.0)
     {
         Wparam.qos.m_liveliness.lease_duration.seconds = (int)livelinessPeriod;
-        Wparam.qos.m_liveliness.lease_duration.fraction = (livelinessPeriod - (int)livelinessPeriod) * 4294967000; // ms
+        Wparam.qos.m_liveliness.lease_duration.fraction((livelinessPeriod - (int)livelinessPeriod) * 4294967000); // ms
     }
 
     ShapePublisher *shapepub = new ShapePublisher();
@@ -126,7 +127,7 @@ ShapeSubscriber *create_reader(Participant *participant, TopicDataType *topic,
     if (livelinessPeriod > 0.0)
     {
         Rparam.qos.m_liveliness.lease_duration.seconds = (int)livelinessPeriod;
-        Rparam.qos.m_liveliness.lease_duration.fraction = (livelinessPeriod - (int)livelinessPeriod) * 4294967000; // ms
+        Rparam.qos.m_liveliness.lease_duration.fraction((livelinessPeriod - (int)livelinessPeriod) * 4294967000); // ms
     }
 
     ShapeSubscriber *shapesub = new ShapeSubscriber();
@@ -161,7 +162,7 @@ int run(int domain_id, bool use_security,
     if ( participant == NULL ) { return -1; }
 
     Duration_t send_period = {1, 0};
-    Time_t current_time = {0, 0};
+    eprosima::fastrtps::Time_t current_time = {0, 0};
     bool error = false;
 
     if ( pub_topic_name != NULL) {
@@ -188,7 +189,7 @@ int run(int domain_id, bool use_security,
         if ( reader == NULL ) { error = true; }
         else { reader->set_read_guard(&read_guard); }
     }
-    
+
     if(error)
     {
         ShapeTypeConfigurator::destroy_participant( participant );
@@ -198,10 +199,10 @@ int run(int domain_id, bool use_security,
     mClock.setTimeNow(&current_time);
 
 
-    Time_t last_send_time    = {0, 0};
-    Time_t send_time = { send_period.seconds, send_period.fraction};
+    eprosima::fastrtps::Time_t last_send_time    = {0, 0};
+    eprosima::fastrtps::Time_t send_time = send_period;
 
-    Time_t next_send_time    = current_time + send_time;
+    eprosima::fastrtps::Time_t next_send_time    = current_time + send_time;
     Duration_t wait_timeout  = (writer==NULL) ? c_TimeInfinite : send_period;
 
     ShapeType shape;
@@ -408,4 +409,3 @@ int main(int argc, char *argv[])
                governance_file, permissions_file,
                partition, livelinessPeriod, enable_logging);
 }
-

@@ -29,7 +29,7 @@ COMMON_CFLAGS= -c -Wall -D__LITTLE_ENDIAN__ -std=c++11
 COMMON_CFLAGS+= -m64 -fpic
 LDFLAGS=-m64
 
-CFLAGS = $(COMMON_CFLAGS) -O2
+CFLAGS = $(COMMON_CFLAGS) $(if $(DEBUG),-g,-O2)
 
 EPROSIMA_DIR=eprosima_fastrtps
 
@@ -37,7 +37,7 @@ INCLUDES= -I${EPROSIMA_DIR}
 
 DEFINES+=-DEPROSIMA_FASTRTPS
 
-LIBS = -lfastcdr -lfastrtps $(SYSLIBS)
+LIBS = -lfastcdr -lfastrtps -lfoonathan_memory-0.6.1 $(SYSLIBS)
 
 EPROSIMA_TARGET= eprosima_fastrtps_linux
 
@@ -60,15 +60,10 @@ EPROSIMA_OBJS = $(EPROSIMA_DIR)/ShapeType_main.cpp.o $(EPROSIMA_DIR)/ShapeType.c
 eprosima_fastrtps: $(EPROSIMA_TARGET)
 
 $(EPROSIMA_TARGET): $(EPROSIMA_OBJS)
-	$(LN) $(LDFLAGS) -o $(EPROSIMA_TARGET) $(DEFINES) $(EPROSIMA_OBJS) $(LIBS)
-
-$(EPROSIMA_DIR)/%.cpp.o:$(EPROSIMA_DIR)/%.cpp
-	$(CXX) $(CFLAGS) $(INCLUDES) $< -o $@ $(DEFINES)
+	$(LN) $(LDFLAGS) $(ADDITIONAL_LINK_OPTIONS) -o $(EPROSIMA_TARGET) $(DEFINES) $(EPROSIMA_OBJS) $(LIBS)
 
 $(EPROSIMA_DIR)/%.cpp.o:$(EPROSIMA_DIR)/%.cpp
 	$(CXX) $(CFLAGS) $(INCLUDES) $< -o $@ $(DEFINES)
 
 clean:
 	rm -f $(EPROSIMA_OBJS) $(EPROSIMA_TARGET)
-
-
